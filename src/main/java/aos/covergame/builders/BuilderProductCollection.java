@@ -1,24 +1,30 @@
-package aos.covergame.builder;
+package aos.covergame.builders;
 
 import aos.covergame.model.Product;
+import aos.covergame.model.ProductCollection;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class BuilderProducts {
+public class BuilderProductCollection {
 
     private volatile ProductCollection products = new ProductCollection(100);
 
-    private BuilderProducts(){}
+    private BuilderProductCollection(){}
 
-    public static BuilderProducts build(String pathToFilesCsv) {
+    public static BuilderProductCollection build(String pathToFilesCsv) {
 
-        final BuilderProducts builderProducts = new BuilderProducts();
+        ExecutorService pool = Executors.newFixedThreadPool(4);
+
+        final BuilderProductCollection builderProducts = new BuilderProductCollection();
 
         try(Stream<Path> pathFiles = Files.walk(Paths.get(pathToFilesCsv))){
 
@@ -56,26 +62,19 @@ public class BuilderProducts {
     };
 
     private synchronized void addToProductCollection(Product product){
-        if(Collections.frequency(products,product) == 20){
-            return;
-        }
         products.add(product);
     }
 
     private Function<String, Product> mapToItem = (line) -> {
-        try{
-            String[] p = line.split(";");
-            Product item = new Product();
-            item.setProductID(Integer.parseInt(p[0]));
-            item.setName(p[1]);
-            item.setCondition(p[2]);
-            item.setState(p[3]);
-            item.setPrice(Float.parseFloat(p[4]));
-            return item;
-        }catch (NumberFormatException e){
-            e.printStackTrace();
-        }
-        return null;
+
+        final String[] rowCsv = line.split(";");
+        final Product item = new Product();
+
+        Arrays.asList(BuilderProduct.values())
+                .parallelStream()
+                .forEach(builder -> builder.setFieldProduct(item,rowCsv));
+
+        return item;
     };
 
     public ProductCollection getProducts() {
