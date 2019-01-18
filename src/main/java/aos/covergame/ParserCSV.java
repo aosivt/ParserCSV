@@ -10,7 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class ParserCSV {
 
@@ -20,27 +24,39 @@ public class ParserCSV {
 
     private static final String DEFAULT_NAME_RESULT_FILE = "result.txt";
 
+    private static final String HEAD_CSV_FILE = "product ID;Name;Condition;State;Price;\n";
+
+
+
     public static void main(String[] args) {
         final String pathToCsv = args.length > 0 ? args[0] : DEFAULT_PATH_TO_CSV_FILES;
 
         ProductQueue products = BuilderProductCollection.build(pathToCsv).getProducts();
-
+        ParserCSV.write(HEAD_CSV_FILE);
         createCsv(products);
-
     }
 
     private static void createCsv(final Collection<Product> products) {
-
         products.stream()
-                .map(Product::toString)
-                .forEach(row ->
-                        {
-                            try {
-                                Files.write(Paths.get(DEFAULT_NAME_RESULT_FILE), row.getBytes(), StandardOpenOption.APPEND);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                );
+                .map(Product::toString).forEach(ParserCSV::write);
     }
+
+    private static void createCsv(final ProductQueue products) {
+        drainToStream(products)
+                .limit(1000)
+                .map(Product::toString).forEach(ParserCSV::write);
+    }
+
+    private static void write(String row){
+        try {
+            Files.write(Paths.get(DEFAULT_NAME_RESULT_FILE), row.getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private static <T> Stream<T> drainToStream(PriorityBlockingQueue<T> queue) {
+        Objects.requireNonNull(queue);
+        return Stream.generate(queue::poll).limit(queue.size());
+    }
+
 }

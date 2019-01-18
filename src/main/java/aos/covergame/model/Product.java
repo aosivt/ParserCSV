@@ -53,9 +53,8 @@ public class Product implements Comparable {
 
     @Override
     public boolean equals(Object o) {
-        return ((Product) o).getProductID().equals(this.getProductID());
+        return ((Product) o).getProductID().equals(productID);
     }
-
     @Override
     public int hashCode() {
         return super.hashCode();
@@ -63,6 +62,6 @@ public class Product implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        return (int) (price * 100 - ((Product) o).getPrice() * 100);
+        return Float.compare(price, ((Product)o).getPrice());
     }
 }

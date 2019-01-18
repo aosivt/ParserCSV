@@ -1,43 +1,23 @@
 package aos.covergame.model;
 
 import java.util.*;
+import java.util.concurrent.PriorityBlockingQueue;
 
-public class ProductQueue extends PriorityQueue<Product> {
+public class ProductQueue extends PriorityBlockingQueue<Product> {
 
-    private static final Integer DEFAULT_MAX_COUNT = 1000;
     private static final Integer DEFAULT_IDENTICAL_OBJECTS = 20;
 
-    private Integer maxCount = DEFAULT_MAX_COUNT;
     private Integer countIdenticalObject = DEFAULT_IDENTICAL_OBJECTS;
 
-    public ProductQueue() {
-        super(DEFAULT_MAX_COUNT);
-    }
+    public ProductQueue() {}
 
-    public ProductQueue(Integer maxCount) {
-        super(maxCount);
-        this.maxCount = maxCount;
-    }
-
-    public ProductQueue(Integer maxCount, Integer countIdenticalObject) {
-        super(maxCount);
-        this.maxCount = maxCount;
+    public ProductQueue(Integer countIdenticalObject) {
         this.countIdenticalObject = countIdenticalObject;
     }
 
-    public Integer getMaxCount() {
-        return maxCount;
-    }
-
     @Override
-    public Comparator<? super Product> comparator() {
-        return idComparator;
+    public boolean add(Product product) {
+        return Collections.frequency(this, product) != countIdenticalObject && super.add(product);
     }
 
-    private static Comparator<Product> idComparator = new Comparator<Product>(){
-        @Override
-        public int compare(Product c1, Product c2) {
-            return (int) (c1.getProductID() - c2.getProductID());
-        }
-    };
 }

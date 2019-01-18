@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 public class BuilderProductCollection {
 
-    private volatile ProductQueue products = new ProductQueue(100);
+    private volatile ProductQueue products = new ProductQueue();
 
     private static final Integer COUNT_SKIPPED_ROW_INSIDE_CSV = 1;
 
