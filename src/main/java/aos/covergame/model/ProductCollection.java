@@ -8,20 +8,20 @@ import java.util.Collections;
 public class ProductCollection extends ArrayList<Product> {
 
     public static final Integer DEFAULT_MAX_COUNT = 1000;
-    public static final Integer DEFAULT_IDENTIONAL_OBJECTS = 20;
+    public static final Integer DEFAULT_IDENTICAL_OBJECTS = 20;
 
     public ProductCollection(){}
     public ProductCollection(Integer maxCount){
         this.maxCount = maxCount;
     }
 
-    public ProductCollection(Integer maxCount, Integer countIdentionalObject){
+    public ProductCollection(Integer maxCount, Integer countIdenticalObject){
         this.maxCount = maxCount;
-        this.countIdenticalObject = countIdentionalObject;
+        this.countIdenticalObject = countIdenticalObject;
     }
 
     private Integer maxCount = DEFAULT_MAX_COUNT;
-    private Integer countIdenticalObject = DEFAULT_IDENTIONAL_OBJECTS;
+    private Integer countIdenticalObject = DEFAULT_IDENTICAL_OBJECTS;
 
     @Override
     public boolean add(Product product) {
