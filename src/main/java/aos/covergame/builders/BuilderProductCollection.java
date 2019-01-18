@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -39,22 +40,30 @@ public class BuilderProductCollection {
                     .map(Path::toFile)
                     .filter(File::isFile)
                     .map(builderProducts.bufferedReader)
-                    .forEach((bReader) -> {
-                        try {
-                            bReader.lines().skip(COUNT_SKIPPED_ROW_INSIDE_CSV)
-                                    .parallel()
-                                    .map(builderProducts.mapToItem)
-                                    .forEach(builderProducts::addToProductCollection);
-                            bReader.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
+                    .flatMap(builderProducts.add)
+                    .forEach(builderProducts.closeBuffer)
+            ;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return builderProducts;
     }
+
+    private Function<BufferedReader, Stream<BufferedReader>> add = (bReader) -> {
+        bReader.lines().skip(COUNT_SKIPPED_ROW_INSIDE_CSV)
+                .parallel()
+                .map(this.parserRowCsv)
+                .forEach(this::addToProductCollection);
+        return Stream.of(bReader);
+    };
+
+    private Consumer<BufferedReader> closeBuffer = (bReader) -> {
+        try {
+            bReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    };
 
     private Function<File, BufferedReader> bufferedReader = (csvFile) -> {
         BufferedReader br = null;
@@ -67,7 +76,7 @@ public class BuilderProductCollection {
         return br;
     };
 
-    private Function<String, Product> mapToItem = (line) -> {
+    private Function<String, Product> parserRowCsv = (line) -> {
         final String[] rowCsv = line.split(DELIMITER_INSIDE_ROW);
         final Product product = new Product();
 
@@ -78,25 +87,12 @@ public class BuilderProductCollection {
         return product;
     };
 
+
     private synchronized void addToProductCollection(Product product) {
-//        pollDataFromQueue(products);
         products.add(product);
     }
 
     public ProductQueue getProducts() {
         return products;
     }
-    private static void pollDataFromQueue(Queue<Product> customerPriorityQueue) {
-        while(true){
-            Product cust = customerPriorityQueue.poll();
-            if(cust == null) break;
-            System.out.println("Обработка клиента с id=" + cust.getProductID());
-        }
-    }
-    public static Comparator<Product> idComparator = new Comparator<Product>(){
-        @Override
-        public int compare(Product c1, Product c2) {
-            return (int) (c1.getPrice() - c2.getPrice());
-        }
-    };
 }

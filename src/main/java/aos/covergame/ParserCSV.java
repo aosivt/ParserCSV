@@ -26,13 +26,22 @@ public class ParserCSV {
 
     private static final String HEAD_CSV_FILE = "product ID;Name;Condition;State;Price;\n";
 
+    static {
+        try {
+            Files.delete(Paths.get(DEFAULT_NAME_RESULT_FILE));
+            Files.createFile(Paths.get(DEFAULT_NAME_RESULT_FILE));
+            ParserCSV.write(HEAD_CSV_FILE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public static void main(String[] args) {
         final String pathToCsv = args.length > 0 ? args[0] : DEFAULT_PATH_TO_CSV_FILES;
 
         ProductQueue products = BuilderProductCollection.build(pathToCsv).getProducts();
-        ParserCSV.write(HEAD_CSV_FILE);
+
         createCsv(products);
     }
 
